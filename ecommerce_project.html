@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>JS E-Commerce Project</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+    }
+    nav {
+      background: #333;
+      color: #fff;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.5rem;
+    }
+    footer {
+      background: #333;
+      color: #fff;
+      padding: 1rem;
+      text-align: center;
+    }
+    .container {
+      padding: 1rem;
+    }
+    .search-sort {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    input[type="text"], select {
+      padding: 0.5rem;
+      font-size: 1rem;
+      width: 48%;
+    }
+    .products {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    .product {
+      background: #fff;
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .product img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+    }
+    .product h3 {
+      font-size: 1.1rem;
+    }
+    .product button {
+      margin-top: 0.5rem;
+      padding: 0.5rem 1rem;
+      border: none;
+      background: #28a745;
+      color: white;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .product button.buy {
+      background: #007bff;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: #fff;
+      padding: 1rem;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 400px;
+    }
+    .modal-content input, .modal-content select {
+      width: 100%;
+      margin-bottom: 1rem;
+      padding: 0.5rem;
+    }
+    .close {
+      float: right;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <nav>JS E-Commerce</nav>
+  <div class="container">
+    <div class="search-sort">
+      <input type="text" id="search" placeholder="Search products..." />
+      <select id="sort">
+        <option value="">Sort by</option>
+        <option value="asc">Price Low to High</option>
+        <option value="desc">Price High to Low</option>
+      </select>
+    </div>
+    <div class="products" id="product-list"></div>
+  </div>
+
+  <footer>&copy; 2025 JS E-Commerce</footer>
+
+  <div class="modal" id="buyModal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <h3>Enter Your Details</h3>
+      <input type="text" id="uname" placeholder="Your Name" />
+      <input type="text" id="uphone" placeholder="Phone Number" />
+      <input type="text" id="uaddress" placeholder="Address" />
+      <select id="upayment">
+        <option value="">Select Payment Type</option>
+        <option value="Cash on Delivery">Cash on Delivery</option>
+        <option value="UPI">UPI</option>
+        <option value="Credit Card">Credit Card</option>
+      </select>
+      <button onclick="submitBuy()">Submit</button>
+    </div>
+  </div>
+
+  <script>
+    const products = [
+  {
+    "id": 1,
+    "name": "Wireless Headphones",
+    "price": 532,
+    "image": "https://via.placeholder.com/150?text=Wireless+Headphones"
+  },
+  {
+    "id": 2,
+    "name": "Bluetooth Speaker",
+    "price": 8462,
+    "image": "https://via.placeholder.com/150?text=Bluetooth+Speaker"
+  },
+  {
+    "id": 3,
+    "name": "Smart Watch",
+    "price": 6248,
+    "image": "https://via.placeholder.com/150?text=Smart+Watch"
+  },
+  {
+    "id": 4,
+    "name": "Gaming Mouse",
+    "price": 5950,
+    "image": "https://via.placeholder.com/150?text=Gaming+Mouse"
+  },
+  {
+    "id": 5,
+    "name": "Mechanical Keyboard",
+    "price": 2520,
+    "image": "https://via.placeholder.com/150?text=Mechanical+Keyboard"
+  },
+  {
+    "id": 6,
+    "name": "4K Monitor",
+    "price": 2991,
+    "image": "https://via.placeholder.com/150?text=4K+Monitor"
+  },
+  {
+    "id": 7,
+    "name": "External SSD",
+    "price": 9662,
+    "image": "https://via.placeholder.com/150?text=External+SSD"
+  },
+  {
+    "id": 8,
+    "name": "Power Bank",
+    "price": 1834,
+    "image": "https://via.placeholder.com/150?text=Power+Bank"
+  },
+  {
+    "id": 9,
+    "name": "Laptop Stand",
+    "price": 8355,
+    "image": "https://via.placeholder.com/150?text=Laptop+Stand"
+  },
+  {
+    "id": 10,
+    "name": "Webcam",
+    "price": 1361,
+    "image": "https://via.placeholder.com/150?text=Webcam"
+  },
+  {
+    "id": 11,
+    "name": "Fitness Tracker",
+    "price": 6717,
+    "image": "https://via.placeholder.com/150?text=Fitness+Tracker"
+  },
+  {
+    "id": 12,
+    "name": "Noise Cancelling Earbuds",
+    "price": 9663,
+    "image": "https://via.placeholder.com/150?text=Noise+Cancelling+Earbuds"
+  },
+  {
+    "id": 13,
+    "name": "Smartphone",
+    "price": 9640,
+    "image": "https://via.placeholder.com/150?text=Smartphone"
+  },
+  {
+    "id": 14,
+    "name": "Tablet",
+    "price": 8844,
+    "image": "https://via.placeholder.com/150?text=Tablet"
+  },
+  {
+    "id": 15,
+    "name": "Drone",
+    "price": 4465,
+    "image": "https://via.placeholder.com/150?text=Drone"
+  },
+  {
+    "id": 16,
+    "name": "VR Headset",
+    "price": 3343,
+    "image": "https://via.placeholder.com/150?text=VR+Headset"
+  },
+  {
+    "id": 17,
+    "name": "Smart Glasses",
+    "price": 1996,
+    "image": "https://via.placeholder.com/150?text=Smart+Glasses"
+  },
+  {
+    "id": 18,
+    "name": "Gaming Chair",
+    "price": 2283,
+    "image": "https://via.placeholder.com/150?text=Gaming+Chair"
+  },
+  {
+    "id": 19,
+    "name": "Microphone",
+    "price": 7483,
+    "image": "https://via.placeholder.com/150?text=Microphone"
+  },
+  {
+    "id": 20,
+    "name": "LED Ring Light",
+    "price": 2593,
+    "image": "https://via.placeholder.com/150?text=LED+Ring+Light"
+  },
+  {
+    "id": 21,
+    "name": "Streaming Camera",
+    "price": 1092,
+    "image": "https://via.placeholder.com/150?text=Streaming+Camera"
+  },
+  {
+    "id": 22,
+    "name": "Projector",
+    "price": 5752,
+    "image": "https://via.placeholder.com/150?text=Projector"
+  },
+  {
+    "id": 23,
+    "name": "E-Reader",
+    "price": 8371,
+    "image": "https://via.placeholder.com/150?text=E-Reader"
+  },
+  {
+    "id": 24,
+    "name": "USB Hub",
+    "price": 3506,
+    "image": "https://via.placeholder.com/150?text=USB+Hub"
+  },
+  {
+    "id": 25,
+    "name": "Smart Home Hub",
+    "price": 8760,
+    "image": "https://via.placeholder.com/150?text=Smart+Home+Hub"
+  },
+  {
+    "id": 26,
+    "name": "Thermostat",
+    "price": 3426,
+    "image": "https://via.placeholder.com/150?text=Thermostat"
+  },
+  {
+    "id": 27,
+    "name": "WiFi Router",
+    "price": 9594,
+    "image": "https://via.placeholder.com/150?text=WiFi+Router"
+  },
+  {
+    "id": 28,
+    "name": "Security Camera",
+    "price": 5077,
+    "image": "https://via.placeholder.com/150?text=Security+Camera"
+  },
+  {
+    "id": 29,
+    "name": "Robot Vacuum",
+    "price": 9127,
+    "image": "https://via.placeholder.com/150?text=Robot+Vacuum"
+  },
+  {
+    "id": 30,
+    "name": "Air Purifier",
+    "price": 9287,
+    "image": "https://via.placeholder.com/150?text=Air+Purifier"
+  },
+  {
+    "id": 31,
+    "name": "Electric Scooter",
+    "price": 1259,
+    "image": "https://via.placeholder.com/150?text=Electric+Scooter"
+  },
+  {
+    "id": 32,
+    "name": "Portable AC",
+    "price": 4395,
+    "image": "https://via.placeholder.com/150?text=Portable+AC"
+  },
+  {
+    "id": 33,
+    "name": "Coffee Maker",
+    "price": 2910,
+    "image": "https://via.placeholder.com/150?text=Coffee+Maker"
+  },
+  {
+    "id": 34,
+    "name": "Blender",
+    "price": 2740,
+    "image": "https://via.placeholder.com/150?text=Blender"
+  },
+  {
+    "id": 35,
+    "name": "Juicer",
+    "price": 8721,
+    "image": "https://via.placeholder.com/150?text=Juicer"
+  },
+  {
+    "id": 36,
+    "name": "Toaster",
+    "price": 715,
+    "image": "https://via.placeholder.com/150?text=Toaster"
+  },
+  {
+    "id": 37,
+    "name": "Induction Cooktop",
+    "price": 2784,
+    "image": "https://via.placeholder.com/150?text=Induction+Cooktop"
+  },
+  {
+    "id": 38,
+    "name": "Air Fryer",
+    "price": 5444,
+    "image": "https://via.placeholder.com/150?text=Air+Fryer"
+  },
+  {
+    "id": 39,
+    "name": "Microwave Oven",
+    "price": 2146,
+    "image": "https://via.placeholder.com/150?text=Microwave+Oven"
+  },
+  {
+    "id": 40,
+    "name": "Water Bottle",
+    "price": 2813,
+    "image": "https://via.placeholder.com/150?text=Water+Bottle"
+  },
+  {
+    "id": 41,
+    "name": "Backpack",
+    "price": 5720,
+    "image": "https://via.placeholder.com/150?text=Backpack"
+  },
+  {
+    "id": 42,
+    "name": "Travel Mug",
+    "price": 6670,
+    "image": "https://via.placeholder.com/150?text=Travel+Mug"
+  },
+  {
+    "id": 43,
+    "name": "Wireless Charger",
+    "price": 3552,
+    "image": "https://via.placeholder.com/150?text=Wireless+Charger"
+  },
+  {
+    "id": 44,
+    "name": "Phone Case",
+    "price": 2250,
+    "image": "https://via.placeholder.com/150?text=Phone+Case"
+  },
+  {
+    "id": 45,
+    "name": "Laptop Bag",
+    "price": 6273,
+    "image": "https://via.placeholder.com/150?text=Laptop+Bag"
+  },
+  {
+    "id": 46,
+    "name": "Flash Drive",
+    "price": 4518,
+    "image": "https://via.placeholder.com/150?text=Flash+Drive"
+  },
+  {
+    "id": 47,
+    "name": "Memory Card",
+    "price": 5027,
+    "image": "https://via.placeholder.com/150?text=Memory+Card"
+  },
+  {
+    "id": 48,
+    "name": "Printer",
+    "price": 3840,
+    "image": "https://via.placeholder.com/150?text=Printer"
+  },
+  {
+    "id": 49,
+    "name": "Scanner",
+    "price": 6705,
+    "image": "https://via.placeholder.com/150?text=Scanner"
+  },
+  {
+    "id": 50,
+    "name": "Laminator",
+    "price": 1118,
+    "image": "https://via.placeholder.com/150?text=Laminator"
+  },
+  {
+    "id": 51,
+    "name": "Desk Organizer",
+    "price": 4731,
+    "image": "https://via.placeholder.com/150?text=Desk+Organizer"
+  },
+  {
+    "id": 52,
+    "name": "Desk Lamp",
+    "price": 9808,
+    "image": "https://via.placeholder.com/150?text=Desk+Lamp"
+  },
+  {
+    "id": 53,
+    "name": "Notebook",
+    "price": 6137,
+    "image": "https://via.placeholder.com/150?text=Notebook"
+  },
+  {
+    "id": 54,
+    "name": "Pen Set",
+    "price": 6304,
+    "image": "https://via.placeholder.com/150?text=Pen+Set"
+  },
+  {
+    "id": 55,
+    "name": "Marker Set",
+    "price": 8151,
+    "image": "https://via.placeholder.com/150?text=Marker+Set"
+  },
+  {
+    "id": 56,
+    "name": "Sticky Notes",
+    "price": 9356,
+    "image": "https://via.placeholder.com/150?text=Sticky+Notes"
+  },
+  {
+    "id": 57,
+    "name": "Calendar",
+    "price": 5088,
+    "image": "https://via.placeholder.com/150?text=Calendar"
+  },
+  {
+    "id": 58,
+    "name": "Planner",
+    "price": 4576,
+    "image": "https://via.placeholder.com/150?text=Planner"
+  },
+  {
+    "id": 59,
+    "name": "Drawing Tablet",
+    "price": 7214,
+    "image": "https://via.placeholder.com/150?text=Drawing+Tablet"
+  },
+  {
+    "id": 60,
+    "name": "Graphic Tablet",
+    "price": 7833,
+    "image": "https://via.placeholder.com/150?text=Graphic+Tablet"
+  },
+  {
+    "id": 61,
+    "name": "Mouse Pad",
+    "price": 9985,
+    "image": "https://via.placeholder.com/150?text=Mouse+Pad"
+  },
+  {
+    "id": 62,
+    "name": "Surge Protector",
+    "price": 633,
+    "image": "https://via.placeholder.com/150?text=Surge+Protector"
+  },
+  {
+    "id": 63,
+    "name": "Extension Cord",
+    "price": 4227,
+    "image": "https://via.placeholder.com/150?text=Extension+Cord"
+  },
+  {
+    "id": 64,
+    "name": "Tool Kit",
+    "price": 4858,
+    "image": "https://via.placeholder.com/150?text=Tool+Kit"
+  },
+  {
+    "id": 65,
+    "name": "Drill Machine",
+    "price": 9116,
+    "image": "https://via.placeholder.com/150?text=Drill+Machine"
+  },
+  {
+    "id": 66,
+    "name": "Screwdriver Set",
+    "price": 2765,
+    "image": "https://via.placeholder.com/150?text=Screwdriver+Set"
+  },
+  {
+    "id": 67,
+    "name": "Digital Caliper",
+    "price": 2636,
+    "image": "https://via.placeholder.com/150?text=Digital+Caliper"
+  },
+  {
+    "id": 68,
+    "name": "Measuring Tape",
+    "price": 8880,
+    "image": "https://via.placeholder.com/150?text=Measuring+Tape"
+  },
+  {
+    "id": 69,
+    "name": "Camping Stove",
+    "price": 6136,
+    "image": "https://via.placeholder.com/150?text=Camping+Stove"
+  },
+  {
+    "id": 70,
+    "name": "Tent",
+    "price": 1621,
+    "image": "https://via.placeholder.com/150?text=Tent"
+  }
+];
+
+    const productList = document.getElementById('product-list');
+    const searchInput = document.getElementById('search');
+    const sortSelect = document.getElementById('sort');
+    const buyModal = document.getElementById('buyModal');
+
+    let currentProduct = null;
+
+    function renderProducts(data) {
+      productList.innerHTML = '';
+      data.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'product';
+        div.innerHTML = `
+          <img src="${p.image}" alt="${p.name}" />
+          <h3>${p.name}</h3>
+          <p>₹${p.price}</p>
+          <button onclick='addToCart(${p.id})'>Add to Cart</button>
+          <button class="buy" onclick='buyNow(${p.id})'>Buy Now</button>
+        `;
+        productList.appendChild(div);
+      });
+    }
+
+    function addToCart(id) {
+      const product = products.find(p => p.id === id);
+      alert(`Added "${product.name}" to cart.`);
+    }
+
+    function buyNow(id) {
+      currentProduct = products.find(p => p.id === id);
+      buyModal.style.display = 'flex';
+    }
+
+    function closeModal() {
+      buyModal.style.display = 'none';
+      currentProduct = null;
+    }
+
+    function submitBuy() {
+      const name = document.getElementById('uname').value;
+      const phone = document.getElementById('uphone').value;
+      const address = document.getElementById('uaddress').value;
+      const payment = document.getElementById('upayment').value;
+
+      if (!name || !phone || !address || !payment) {
+        alert('Please fill all fields.');
+        return;
+      }
+
+      alert(`Thanks ${name}, your order for "${currentProduct.name}" is placed!`);
+      closeModal();
+    }
+
+    searchInput.addEventListener('input', () => {
+      const val = searchInput.value.toLowerCase();
+      const filtered = products.filter(p => p.name.toLowerCase().includes(val));
+      renderProducts(filtered);
+    });
+
+    sortSelect.addEventListener('change', () => {
+      let sorted = [...products];
+      if (sortSelect.value === 'asc') {
+        sorted.sort((a, b) => a.price - b.price);
+      } else if (sortSelect.value === 'desc') {
+        sorted.sort((a, b) => b.price - a.price);
+      }
+      renderProducts(sorted);
+    });
+
+    renderProducts(products);
+  </script>
+</body>
+</html>
